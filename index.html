@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Naming Ceremony Wishes</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: black;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      animation: glow 1.5s ease-in-out infinite alternate;
+      text-align: center;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #ff4e50, 0 0 20px #f9d423;
+      }
+      to {
+        text-shadow: 0 0 20px #fff, 0 0 30px #f9d423;
+      }
+    }
+
+    .name {
+      display: flex;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(-50px) scale(0.5) rotate(-15deg);
+      animation: popIn 1s forwards;
+      cursor: default;
+    }
+
+    .letter:nth-child(odd) {
+      color: #f9d423;
+    }
+
+    .letter:nth-child(even) {
+      color: #ff4e50;
+    }
+
+    @keyframes popIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.5) rotate(-15deg);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(10px) scale(1.2) rotate(5deg);
+      }
+      100% {
+        transform: translateY(0) scale(1) rotate(0deg);
+      }
+    }
+
+    .message {
+      font-size: 1.2rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      max-width: 600px;
+      text-align: center;
+      backdrop-filter: blur(4px);
+      margin-top: 20px;
+    }
+
+    audio {
+      margin-top: 30px;
+      display: none;
+    }
+
+    #unmuteButton {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff4e50;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 78, 80, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #unmuteButton:hover {
+      background: #f9d423;
+      transform: scale(1.05);
+    }
+
+    #unmuteButton.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg"></canvas>
+
+  <h1>🎊 Naming Ceremony Wishes 🎊</h1>
+
+  <div class="name" id="animated-name"></div>
+
+  <div class="message">
+    Wishing you a joyous and memorable naming ceremony celebration!<br><br>
+    May <strong>Veda Vyasa Karthik</strong>'s life be filled with love, success, and happiness.<br><br>
+    🎉 With love and blessings! 🎉
+  </div>
+
+  <!-- Hidden audio player -->
+  <audio id="backgroundAudio" autoplay muted loop>
+    <source src="og.mp3" type="audio/mp3">
+  </audio>
+
+  <!-- Unmute button -->
+  <button id="unmuteButton" onclick="enableAudio()">🔊 Enable Sound</button>
+
+  <script>
+    // Animate each letter in name
+    const name = "Veda Vyasa Karthik";
+    const container = document.getElementById("animated-name");
+
+    [...name].forEach((ch, i) => {
+      const span = document.createElement("span");
+      span.textContent = ch;
+      span.className = "letter";
+      const delay = (Math.random() * 0.5 + i * 0.1).toFixed(2);
+      span.style.animationDelay = `${delay}s`;
+
+      // Sparkle on hover
+      span.onmouseenter = () => {
+        span.style.textShadow = "0 0 8px #fff, 0 0 16px #f9d423";
+        span.style.transform = "scale(1.3)";
+      };
+      span.onmouseleave = () => {
+        span.style.textShadow = "";
+        span.style.transform = "";
+      };
+
+      container.appendChild(span);
+    });
+
+    // Galaxy background
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let stars = [];
+    const numStars = 300;
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * canvas.width - canvas.width / 2,
+        y: Math.random() * canvas.height - canvas.height / 2,
+        z: Math.random() * canvas.width
+      });
+    }
+
+    function galaxyAnimate() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < stars.length; i++) {
+        let star = stars[i];
+        star.z -= 2;
+
+        if (star.z <= 0) {
+          star.z = canvas.width;
+        }
+
+        let k = 128.0 / star.z;
+        let px = star.x * k + canvas.width / 2;
+        let py = star.y * k + canvas.height / 2;
+
+        if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+          let size = (1 - star.z / canvas.width) * 2;
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+        }
+      }
+
+      requestAnimationFrame(galaxyAnimate);
+    }
+
+    galaxyAnimate();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Audio logic
+    const audio = document.getElementById('backgroundAudio');
+    const unmuteButton = document.getElementById('unmuteButton');
+
+    function enableAudio() {
+      audio.muted = false;
+      audio.volume = 1.0;
+      unmuteButton.classList.add('hidden');
+
+      // Boost volume using Web Audio API (200%)
+      if (!window.audioContext) {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          window.audioContext = new AudioContext();
+          const source = window.audioContext.createMediaElementSource(audio);
+          const gainNode = window.audioContext.createGain();
+          gainNode.gain.setValueAtTime(2.0, window.audioContext.currentTime); // 200%
+          source.connect(gainNode);
+          gainNode.connect(window.audioContext.destination);
+        } catch (error) {
+          console.log("Web Audio API not supported:", error);
+        }
+      }
+    }
+
+    // Attempt autoplay unmute if allowed
+    audio.addEventListener('loadeddata', () => {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setTimeout(() => {
+              audio.muted = false;
+              audio.volume = 1.0;
+              unmuteButton.classList.add('hidden');
+            }, 100);
+          })
+          .catch(() => {
+            console.log("Autoplay with sound prevented by browser.");
+          });
+      }
+    });
+  </script>
+</body>
+</html>
