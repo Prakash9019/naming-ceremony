@@ -1,268 +1,274 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Naming Ceremony Wishes</title>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
-      background: black;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Naming Ceremony Wishes — Envelope Intro</title>
+<style>
+  /* --- Page basics --- */
+  html,body { height:100%; margin:0; font-family: 'Segoe UI', system-ui, sans-serif; background: #000; color:#fff; overflow:hidden; }
+  /* main content wrapper (hidden until envelope opens) */
+  #main-content { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity .6s ease, transform .6s ease; opacity:0; pointer-events:none; }
+  #main-content.visible { opacity:1; pointer-events:auto; }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
+  canvas { position:fixed; inset:0; z-index:-1; }
 
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      animation: glow 1.5s ease-in-out infinite alternate;
-      text-align: center;
-    }
+  h1 { font-size:3rem; margin:0 0 10px; animation: glow 1.6s ease-in-out infinite alternate; text-align:center; }
+  @keyframes glow {
+    from { text-shadow:0 0 10px #ff4e50, 0 0 20px #f9d423; }
+    to   { text-shadow:0 0 20px #fff, 0 0 30px #f9d423; }
+  }
 
-    @keyframes glow {
-      from {
-        text-shadow: 0 0 10px #ff4e50, 0 0 20px #f9d423;
-      }
-      to {
-        text-shadow: 0 0 20px #fff, 0 0 30px #f9d423;
-      }
-    }
+  .name { display:flex; flex-wrap:wrap; justify-content:center; margin-top:8px; font-size:2.2rem; gap:2px; }
+  /* NOTE: renamed letter class to avoid collision with envelope .letter */
+  .name-letter {
+    display:inline-block;
+    opacity:0;
+    transform: translateY(-50px) scale(.5) rotate(-15deg);
+    animation: popIn 1s forwards;
+    cursor: default;
+    transition: transform .2s ease;
+  }
+  .name-letter:nth-child(odd)  { color: #f9d423; }
+  .name-letter:nth-child(even) { color: #ff4e50; }
+  .name-letter:hover { transform: scale(1.25); text-shadow:0 0 8px #fff, 0 0 16px #f9d423; }
 
-    .name {
-      display: flex;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+  @keyframes popIn {
+    0% { opacity:0; transform: translateY(-50px) scale(.5) rotate(-15deg); }
+    50% { opacity:1; transform: translateY(10px) scale(1.15) rotate(5deg); }
+    100% { opacity:1; transform: translateY(0) scale(1) rotate(0); }
+  }
 
-    .letter {
-      display: inline-block;
-      opacity: 0;
-      transform: translateY(-50px) scale(0.5) rotate(-15deg);
-      animation: popIn 1s forwards;
-      cursor: default;
-    }
+  .message {
+    font-size:1.06rem;
+    background: rgba(255,255,255,0.06);
+    padding: 18px 26px;
+    border-radius:14px;
+    box-shadow: 0 6px 18px rgba(255,255,255,0.06);
+    max-width:700px; text-align:center; margin-top:18px; backdrop-filter: blur(4px);
+  }
 
-    .letter:nth-child(odd) {
-      color: #f9d423;
-    }
+  /* --- Envelope overlay (improved) --- */
+  #envelope-container {
+    position:fixed; inset:0;
+    background: radial-gradient(circle at 30% 35%, rgba(255,246,208,1) 0%, rgba(255,208,120,1) 35%, rgba(255,78,80,1) 100%);
+    display:flex; align-items:center; justify-content:center;
+    z-index:2200; cursor:pointer; transition:opacity .4s ease;
+  }
 
-    .letter:nth-child(even) {
-      color: #ff4e50;
-    }
+  #envelope {
+    width:280px; height:170px; position:relative; perspective:1200px;
+    border-radius:10px; box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    transform-origin:center center;
+  }
 
-    @keyframes popIn {
-      0% {
-        opacity: 0;
-        transform: translateY(-50px) scale(0.5) rotate(-15deg);
-      }
-      50% {
-        opacity: 1;
-        transform: translateY(10px) scale(1.2) rotate(5deg);
-      }
-      100% {
-        transform: translateY(0) scale(1) rotate(0deg);
-      }
-    }
+  /* envelope body (visible when flap opens) */
+  #envelope .body {
+    position:absolute; inset:0;
+    background: linear-gradient(150deg,#fffaf0,#fff3d6);
+    border-radius:10px; border:2px solid rgba(0,0,0,0.08);
+    z-index:1;
+    overflow:hidden;
+  }
 
-    .message {
-      font-size: 1.2rem;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-      max-width: 600px;
-      text-align: center;
-      backdrop-filter: blur(4px);
-      margin-top: 20px;
-    }
+  /* big decorative border for "V" thickness visibility */
+  #envelope .flap {
+    position:absolute; left:0; top:0; width:100%; height:92px;
+    background: linear-gradient(145deg, #fff1a6, #ffd34a);
+    clip-path: polygon(0 0, 100% 0, 50% 100%); 
+    transform-origin: 50% 0%;
+    transition: transform 1s cubic-bezier(.2,.9,.2,1);
+    z-index:8;
+    border-bottom: 1px solid #1e1e1c; /* thinner crease line */
+    /* subtle emboss */
+    box-shadow: 0 8px 18px rgba(0,0,0,0.24), inset 0 -6px 10px rgba(0,0,0,0.06);
+  }
 
-    audio {
-      margin-top: 30px;
-      display: none;
-    }
+  /* THICK V crease - a darker triangular strip placed under the flap */
+  #envelope .flap::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:-10px;           /* slightly overlaps */
+    width:100%;
+    height:28px;            /* makes the V thick */
+    z-index:5;
+    background: linear-gradient(145deg,#b8860b,#9c6d00);
+    clip-path: polygon(0 0, 100% 0, 50% 100%); /* same triangular shape -> visible crease */
+    filter: drop-shadow(0 -2px 1px rgba(0,0,0,0.25));
+    pointer-events:none;
+  }
 
-    #unmuteButton {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ff4e50;
-      color: white;
-      border: none;
-      padding: 15px 25px;
-      border-radius: 25px;
-      font-size: 16px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(255, 78, 80, 0.3);
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
+  /* When open, flap flips and letter card slides up */
+  #envelope.open .flap { transform: rotateX(-180deg); }
+  #envelope .card {
+    position:absolute; left:10%; right:10%; bottom:10%; top:22%;
+    /* background: #fff;  */
+    border-radius:8px; z-index:3;
+    display:flex; align-items:center; justify-content:center; font-weight:700; color:#ff4e50;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.22);
+    transition: transform 1s ease;
+    background: linear-gradient(135deg, #ff4e50, #fffaf0);
+  }
+  #envelope.open .card { transform: translateY(-130%); } /* slides up out of envelope */
 
-    #unmuteButton:hover {
-      background: #f9d423;
-      transform: scale(1.05);
-    }
-
-    #unmuteButton.hidden {
-      display: none;
-    }
-  </style>
+  /* small responsive tweak */
+  @media (max-width:420px) {
+    #envelope { width:220px; height:140px; }
+  }
+</style>
 </head>
 <body>
 
-  <canvas id="bg"></canvas>
-
-  <h1>🎊 Naming Ceremony Wishes 🎊</h1>
-
-  <div class="name" id="animated-name"></div>
-
-  <div class="message">
-    Wishing.... you a joyous and memorable naming ceremony celebration!<br><br>
-    May <strong>Veda Vyasa Karthik</strong>'s life be filled with love, success, and happiness.<br><br>
-    🎉 With love and blessings! 🎉
+  <!-- Envelope intro -->
+  <div id="envelope-container" role="button" aria-label="Open invitation (click to open)">
+    <div id="envelope" aria-hidden="false">
+      <div class="flap" ></div>
+      <div class="body"></div>
+      <div class="card">🎉 Open Me 🎉</div>
+    </div>
   </div>
 
-  <!-- Hidden audio player -->
-  <audio id="backgroundAudio" autoplay loop playsinline>
+  <!-- Main page (hidden until envelope opens) -->
+  <div id="main-content" aria-hidden="true">
+    <canvas id="bg"></canvas>
+
+    <h1>🎊 Naming Ceremony Wishes 🎊</h1>
+
+    <div class="name" id="animated-name"></div>
+
+    <div class="message">
+      Wishing you a joyous and memorable naming ceremony celebration!<br><br>
+      May <strong>Veda Vyasa Karthik</strong>'s life be filled with love, success, and happiness.<br><br>
+      🎉 With love and blessings! 🎉
+    </div>
+  </div>
+
+  <!-- Audio (autoplay muted — unmute on user click) -->
+  <audio id="backgroundAudio" autoplay muted loop playsinline preload="auto">
     <source src="og.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
   </audio>
 
-  <!-- Unmute button -->
-  <button id="unmuteButton" onclick="enableAudio()">🔊 Enable Sound</button>
+<script>
+/* -------------------
+   galaxy background (unchanged)
+   ------------------- */
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-  <script>
-    // Animate each letter in name
-    const name = "Veda Vyasa Karthik";
-    const container = document.getElementById("animated-name");
+let stars = [];
+const numStars = 240;
+function initStars(){
+  stars = [];
+  for (let i=0;i<numStars;i++){
+    stars.push({ x: Math.random()*canvas.width - canvas.width/2, y: Math.random()*canvas.height - canvas.height/2, z: Math.random()*canvas.width });
+  }
+}
+initStars();
+function galaxyAnimate() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    [...name].forEach((ch, i) => {
-      const span = document.createElement("span");
-      span.textContent = ch;
-      span.className = "letter";
-      const delay = (Math.random() * 0.5 + i * 0.1).toFixed(2);
-      span.style.animationDelay = `${delay}s`;
+  for (let i = 0; i < stars.length; i++) {
+    let star = stars[i];
+    star.z -= 2;
 
-      // Sparkle on hover
-      span.onmouseenter = () => {
-        span.style.textShadow = "0 0 8px #fff, 0 0 16px #f9d423";
-        span.style.transform = "scale(1.3)";
-      };
-      span.onmouseleave = () => {
-        span.style.textShadow = "";
-        span.style.transform = "";
-      };
-
-      container.appendChild(span);
-    });
-
-    // Galaxy background
-    const canvas = document.getElementById('bg');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let stars = [];
-    const numStars = 300;
-
-    for (let i = 0; i < numStars; i++) {
-      stars.push({
-        x: Math.random() * canvas.width - canvas.width / 2,
-        y: Math.random() * canvas.height - canvas.height / 2,
-        z: Math.random() * canvas.width
-      });
+    if (star.z <= 0.5) {
+      star.z = Math.random() * canvas.width; 
+      star.x = Math.random() * canvas.width - canvas.width / 2;
+      star.y = Math.random() * canvas.height - canvas.height / 2;
     }
 
-    function galaxyAnimate() {
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let k = 128.0 / star.z;
+    let px = star.x * k + canvas.width / 2;
+    let py = star.y * k + canvas.height / 2;
 
-      for (let i = 0; i < stars.length; i++) {
-        let star = stars[i];
-        star.z -= 2;
-
-        if (star.z <= 0) {
-          star.z = canvas.width;
-        }
-
-        let k = 128.0 / star.z;
-        let px = star.x * k + canvas.width / 2;
-        let py = star.y * k + canvas.height / 2;
-
-        if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-          let size = (1 - star.z / canvas.width) * 2;
-          ctx.beginPath();
-          ctx.arc(px, py, size, 0, Math.PI * 2);
-          ctx.fillStyle = 'white';
-          ctx.fill();
-        }
-      }
-
-      requestAnimationFrame(galaxyAnimate);
+    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+      let size = Math.max((1 - star.z / canvas.width) * 2, 0.5);
+      ctx.beginPath();
+      ctx.arc(px, py, size, 0, Math.PI * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
     }
+  }
 
-    galaxyAnimate();
+  requestAnimationFrame(galaxyAnimate);
+}
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
 
-    // Audio logic
-    const audio = document.getElementById('backgroundAudio');
-    const unmuteButton = document.getElementById('unmuteButton');
+galaxyAnimate();
 
-    function enableAudio() {
+/* -------------------
+   Envelope + sequencing logic
+   ------------------- */
+const envelopeContainer = document.getElementById('envelope-container');
+const envelope = document.getElementById('envelope');
+const mainContent = document.getElementById('main-content');
+const audio = document.getElementById('backgroundAudio');
+
+envelopeContainer.addEventListener('click', openEnvelope, { once: true });
+
+function openEnvelope(){
+  // animate flap/card
+  envelope.classList.add('open');
+  // After flap animation, hide overlay & reveal main content + start audio + create name letters
+  setTimeout(()=> {
+    envelopeContainer.style.transition = 'opacity .5s ease';
+    envelopeContainer.style.opacity = '0';
+    setTimeout(()=> envelopeContainer.style.display = 'none', 500);
+
+    // reveal main content
+    mainContent.classList.add('visible');
+    mainContent.setAttribute('aria-hidden','false');
+
+    // create animated name letters now (so animation is visible)
+    createNameLetters();
+
+    // unmute and play audio (user interaction guaranteed by clicking the envelope)
+    try {
       audio.muted = false;
       audio.volume = 1.0;
-      unmuteButton.classList.add('hidden');
+      const p = audio.play();
+      if (p && p.catch) p.catch(err => console.warn('audio.play() rejected:', err));
+    } catch(e){ console.warn('audio error', e); }
+  }, 750); // small delay so flip feels natural
+}
 
-      // Boost volume using Web Audio API (200%)
-      if (!window.audioContext) {
-        try {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          window.audioContext = new AudioContext();
-          const source = window.audioContext.createMediaElementSource(audio);
-          const gainNode = window.audioContext.createGain();
-          gainNode.gain.setValueAtTime(2.0, window.audioContext.currentTime); // 200%
-          source.connect(gainNode);
-          gainNode.connect(window.audioContext.destination);
-        } catch (error) {
-          console.log("Web Audio API not supported:", error);
-        }
-      }
-    }
-
-    // Attempt autoplay unmute if allowed
-    audio.addEventListener('loadeddata', () => {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setTimeout(() => {
-              audio.muted = false;
-              audio.volume = 1.0;
-              unmuteButton.classList.add('hidden');
-            }, 100);
-          })
-          .catch(() => {
-            console.log("Autoplay with sound prevented by browser.");
-          });
-      }
+/* -------------------
+   Create name letters AFTER envelope open
+   ------------------- */
+function createNameLetters(){
+  const nameStr = "Veda Vyasa Karthik";
+  const container = document.getElementById('animated-name');
+  container.innerHTML = ""; // start fresh
+  [...nameStr].forEach((ch,i) => {
+    const span = document.createElement('span');
+    span.textContent = ch;
+    span.className = 'name-letter';
+    // slight staggered delays
+    const delay = (Math.random()*0.45 + i*0.07).toFixed(2);
+    span.style.animationDelay = `${delay}s`;
+    // hover sparkle / transform handled in CSS, but keep for extra polish:
+    span.addEventListener('mouseenter', ()=> {
+      span.style.transform = 'scale(1.28)';
+      span.style.textShadow = '0 0 8px #fff, 0 0 14px #f9d423';
     });
-  </script>
+    span.addEventListener('mouseleave', ()=> {
+      span.style.transform = '';
+      span.style.textShadow = '';
+    });
+    container.appendChild(span);
+  });
+}
+
+/* Safety: if user used keyboard to "activate" envelope, ensure audio also starts */
+envelopeContainer.addEventListener('keydown', (ev) => {
+  if(ev.key === 'Enter' || ev.key === ' ') { openEnvelope(); }
+});
+</script>
 </body>
 </html>
